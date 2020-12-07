@@ -1,3 +1,5 @@
+import java.util.*;
+
 /**
  * CIS 120 HW09 - TicTacToe Demo
  * (c) University of Pennsylvania
@@ -24,9 +26,9 @@
 public class Othello {
 
     private int[][] board;
-    private int numTurns;
     private boolean player1;
     private boolean gameOver;
+    private Deque<Set<int[]>> history;
 
     /**
      * Constructor sets up game state.
@@ -52,18 +54,79 @@ public class Othello {
         if (board[r][c] != 0 || gameOver) {
             return false;
         }
-
+        
         if (player1) {
             board[r][c] = 1;
         } else {
             board[r][c] = 2;
         }
+        
+        Collection<int[]> flipped = flippedPieces(c, r);  
+        for (int[] coord : flipped) {
+            int x = coord[0];
+            int y = coord[1];
+            if (getCell(x, y) == 1) {
+                board[y][x] = 2;
+            } else {
+                board[y][x] = 1;
+            }
+        }
+        
+        if (flipped.size() == 0) {
+            board[r][c] = 0;
+        }
 
-        numTurns++;
+
         if (checkWinner() == 0) {
             player1 = !player1;
         }
         return true;
+    }
+    
+    private Collection<int[]> flippedPiecesHelper(int c, int r, int x, int y) {
+        int currentRow = r + y;
+        int currentPiece = getCell(c, r);
+        int currentColumn = c + x;
+        boolean endOfSeries = false;
+        Collection<int[]> intermediaryPieces = new HashSet<int[]>();
+        
+        while ((!endOfSeries) && currentColumn < 9 && currentColumn >= 0 &&
+                currentRow < 9 && currentRow >= 0) {
+            int newPiece = getCell(currentColumn, currentRow);
+            
+            if (newPiece == 0) {
+                //if cell is blank then nothing is flipped
+                endOfSeries = true;
+                System.out.print("empty");
+            } else if (newPiece == currentPiece) {
+                //if cell is the same then our series ends
+                System.out.print("same");
+                System.out.print(intermediaryPieces.size());
+                return intermediaryPieces;
+            } else {
+                //if the cell is not the same then add it
+                int[] coords = {currentColumn, currentRow};
+                intermediaryPieces.add(coords);
+                System.out.print("diff");
+            }
+            currentColumn += x;
+            currentRow += y;
+        }
+        intermediaryPieces.clear();
+        return intermediaryPieces;
+    }
+    
+    private Collection<int[]> flippedPieces(int c, int r) {
+        Collection<int[]> pieces = new HashSet<int[]>();
+        pieces.addAll(flippedPiecesHelper(c, r, 0, 1));
+        pieces.addAll(flippedPiecesHelper(c, r, 1, 0));
+        pieces.addAll(flippedPiecesHelper(c, r, 1, 1));
+        pieces.addAll(flippedPiecesHelper(c, r, 0, -1));
+        pieces.addAll(flippedPiecesHelper(c, r, -1, 0));
+        pieces.addAll(flippedPiecesHelper(c, r, -1, -1));
+        pieces.addAll(flippedPiecesHelper(c, r, -1, 1));
+        pieces.addAll(flippedPiecesHelper(c, r, 1, -1));
+        return pieces;
     }
 
     /**
@@ -89,41 +152,23 @@ public class Othello {
             }
         }
         
-        if (numTurns >= 9) {
-            gameOver = true;
-            return 3;
-        } else {
-            return 0;
-        }
+        return 0;
     }
 
-    /**
-     * printGameState prints the current game state
-     * for debugging.
-     */
-    public void printGameState() {
-        System.out.println("\n\nTurn " + numTurns + ":\n");
-        for (int i = 0; i < board.length; i++) {
-            for (int j = 0; j < board[i].length; j++) {
-                System.out.print(board[i][j]);
-                if (j < 2) { 
-                    System.out.print(" | "); 
-                }
-            }
-            if (i < 2) {
-                System.out.println("\n---------"); 
-            }
-        }
-    }
+
     
     /**
      * reset (re-)sets the game state to start a new game.
      */
     public void reset() {
-        board = new int[3][3];
-        numTurns = 0;
+        board = new int[9][9];
+        board[3][3] = 2;
+        board[4][4] = 2;
+        board[3][4] = 1;
+        board[4][3] = 1;
         player1 = true;
         gameOver = false;
+        history = new LinkedList<Set<int[]>>();
     }
     
     /**

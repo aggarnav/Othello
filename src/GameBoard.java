@@ -6,6 +6,7 @@
 
 import java.awt.*;
 import java.awt.event.*;
+
 import javax.swing.*;
 
 /**
@@ -27,25 +28,29 @@ import javax.swing.*;
 @SuppressWarnings("serial")
 public class GameBoard extends JPanel {
 
-    private Othello ttt; // model for the game
+    private Othello model; // model for the game
     private JLabel status; // current status text
 
     // Game constants
-    public static final int BOARD_WIDTH = 300;
-    public static final int BOARD_HEIGHT = 300;
+    public static final int BOARD_WIDTH = 560;
+    public static final int BOARD_HEIGHT = 560;
+    public static final int SCALE = 70;
+    public static final int DIAMETER = 60;
+    public static final int SPACE = (SCALE - DIAMETER) / 2;
+
 
     /**
      * Initializes the game board.
      */
     public GameBoard(JLabel statusInit) {
         // creates border around the court area, JComponent method
-        setBorder(BorderFactory.createLineBorder(Color.BLACK));
+        setBorder(BorderFactory.createLineBorder(Color.WHITE));
 
         // Enable keyboard focus on the court area.
         // When this component has the keyboard focus, key events are handled by its key listener.
         setFocusable(true);
         
-        ttt = new Othello(); // initializes model for the game
+        model = new Othello(); // initializes model for the game
         status = statusInit; // initializes the status JLabel
 
         /*
@@ -58,7 +63,7 @@ public class GameBoard extends JPanel {
                 Point p = e.getPoint();
                 
                 // updates the model given the coordinates of the mouseclick
-                ttt.playTurn(p.x / 100, p.y / 100);
+                model.playTurn(p.x / SCALE, p.y / SCALE);
                 
                 updateStatus(); // updates the status JLabel
                 repaint(); // repaints the game board
@@ -70,31 +75,49 @@ public class GameBoard extends JPanel {
      * (Re-)sets the game to its initial state.
      */
     public void reset() {
-        ttt.reset();
-        status.setText("Player 1's Turn");
+        model.reset();
+        status.setText("Black's Turn");
         repaint();
 
         // Makes sure this component has keyboard/mouse focus
         requestFocusInWindow();
     }
-
+    
+    /**
+     * Undo the last move
+     */
+    public void undo() {
+        //TODO implement undo
+    }
+    
+    public void save() {
+        //TODO implement save
+    }    
+    
+    public void load() {
+        //TODO implement load
+    }
+    
     /**
      * Updates the JLabel to reflect the current state of the game.
      */
     private void updateStatus() {
-        if (ttt.getCurrentPlayer()) {
-            status.setText("Player 1's Turn");
+        if (model.getCurrentPlayer()) {
+            status.setText("Black plays");
         } else {
-            status.setText("Player 2's Turn");
+            status.setText("White plays");
         }
         
-        int winner = ttt.checkWinner();
+        int winner = model.checkWinner();
         if (winner == 1) {
-            status.setText("Player 1 wins!!!");
+            JOptionPane.showMessageDialog(this, "Black wins!!!", "Game Over", 
+                    JOptionPane.INFORMATION_MESSAGE);
         } else if (winner == 2) {
-            status.setText("Player 2 wins!!!");
+            JOptionPane.showMessageDialog(this, "White wins!!!", "Game Over", 
+                    JOptionPane.INFORMATION_MESSAGE);        
         } else if (winner == 3) {
-            status.setText("It's a tie.");
+            JOptionPane.showMessageDialog(this, "It's a tie", "Game Over", 
+                    JOptionPane.INFORMATION_MESSAGE);
         }
     }
 
@@ -108,25 +131,32 @@ public class GameBoard extends JPanel {
      * methods.  Consider breaking up your paintComponent logic
      * into multiple methods or classes, like Mushroom of Doom.
      */
+    
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
+        g.setColor(Color.WHITE);
         
         // Draws board grid
-        g.drawLine(100, 0, 100, 300);
-        g.drawLine(200, 0, 200, 300);
-        g.drawLine(0, 100, 300, 100);
-        g.drawLine(0, 200, 300, 200);
+        for (int i = 1; i < 10; i++) {
+            int index = i * SCALE;
+            g.drawLine(index, 0, index, BOARD_HEIGHT);
+            g.drawLine(0, index, BOARD_WIDTH, index);
+        }
         
         // Draws X's and O's
-        for (int i = 0; i < 3; i++) {
-            for (int j = 0; j < 3; j++) {
-                int state = ttt.getCell(j, i);
-                if (state == 1) {
-                    g.drawOval(30 + 100 * j, 30 + 100 * i, 40, 40);
-                } else if (state == 2) {
-                    g.drawLine(30 + 100 * j, 30 + 100 * i, 70 + 100 * j, 70 + 100 * i);
-                    g.drawLine(30 + 100 * j, 70 + 100 * i, 70 + 100 * j, 30 + 100 * i);
+        for (int i = 0; i < 9; i++) {
+            for (int j = 0; j < 9; j++) {
+                int state = model.getCell(j, i);
+                if (state != 0) {
+                    if (state == 1) {
+                        g.setColor(Color.BLACK);
+                    } else {
+                        g.setColor(Color.WHITE);                        
+                    }
+                    g.fillOval(SPACE + SCALE * j, 
+                            SPACE + SCALE * i, 
+                            DIAMETER, DIAMETER);                    
                 }
             }
         }

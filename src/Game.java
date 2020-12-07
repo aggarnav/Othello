@@ -5,7 +5,6 @@
  */
 
 import java.awt.*;
-import java.awt.event.*;
 import javax.swing.*;
 
 /**
@@ -24,37 +23,55 @@ import javax.swing.*;
  * it will instantiate a TicTacToe object to serve as the game's model.
  */
 public class Game implements Runnable {
+    
+    public static final Color DARK_GREEN = new Color(0, 102, 0);
     public void run() {
         // NOTE: the 'final' keyword denotes immutability even for local variables.
 
         // Top-level frame in which game components live
         final JFrame frame = new JFrame("TicTacToe");
-        frame.setLocation(300, 300);
 
         // Status panel
         final JPanel status_panel = new JPanel();
+        status_panel.setBackground(DARK_GREEN);
         frame.add(status_panel, BorderLayout.SOUTH);
         final JLabel status = new JLabel("Setting up...");
+        status.setForeground(Color.WHITE);
         status_panel.add(status);
 
         // Game board
         final GameBoard board = new GameBoard(status);
+        board.setBackground(DARK_GREEN);
         frame.add(board, BorderLayout.CENTER);
 
         // Reset button
         final JPanel control_panel = new JPanel();
+        control_panel.setBackground(DARK_GREEN);
         frame.add(control_panel, BorderLayout.NORTH);
 
         // Note here that when we add an action listener to the reset button, we define it as an
         // anonymous inner class that is an instance of ActionListener with its actionPerformed()
         // method overridden. When the button is pressed, actionPerformed() will be called.
         final JButton reset = new JButton("Reset");
-        reset.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                board.reset();
-            }
+        reset.addActionListener(e -> {
+            board.reset();   
+        });
+        final JButton undo = new JButton("Undo");
+        reset.addActionListener(e -> {
+            board.undo();
+        });
+        final JButton load = new JButton("Load game");
+        reset.addActionListener(e -> {
+            board.save();
+        });
+        final JButton save = new JButton("Save Game");
+        reset.addActionListener(e -> {
+            board.load();
         });
         control_panel.add(reset);
+        control_panel.add(undo);
+        control_panel.add(save);
+        control_panel.add(load);
 
         // Put the frame on the screen
         frame.pack();
