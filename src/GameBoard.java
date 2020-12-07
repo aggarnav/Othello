@@ -6,6 +6,15 @@
 
 import java.awt.*;
 import java.awt.event.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.Deque;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 
 import javax.swing.*;
 
@@ -71,13 +80,14 @@ public class GameBoard extends JPanel {
         });
     }
 
+    
     /**
      * (Re-)sets the game to its initial state.
      */
     public void reset() {
         model.reset();
-        status.setText("Black's Turn");
         repaint();
+        updateStatus();
 
         // Makes sure this component has keyboard/mouse focus
         requestFocusInWindow();
@@ -87,15 +97,107 @@ public class GameBoard extends JPanel {
      * Undo the last move
      */
     public void undo() {
-        //TODO implement undo
+        int input = JOptionPane.showConfirmDialog(this, "The other player has requested an undo,"
+                + " do you accept", "Undo", JOptionPane.YES_NO_OPTION);
+        if (input == 0) {
+            model.undo();
+            repaint();
+            updateStatus();
+        }
+
     }
     
     public void save() {
-        //TODO implement save
+        String file = JOptionPane.showInputDialog("Enter the file name you want to store to");
+        try {
+            FileWriter fs = new FileWriter(file);
+            BufferedWriter buffer = new BufferedWriter(fs);
+            buffer.write(String.valueOf(model.getCurrentPlayer()));
+            buffer.newLine();
+            
+            buffer.write(String.valueOf(model.isGameOver()));
+            buffer.newLine();
+            
+            for (int[] row : model.getBoard()) {
+                for (int cell : row) {
+                    buffer.write(String.valueOf(cell));
+                }
+                buffer.write(",");
+            }
+            buffer.newLine();
+            buffer.flush();
+            
+            Iterator<List<int[]>> iterator = model.getHistory().iterator();
+            while (iterator.hasNext()) {
+                Iterator<int[]> listIterator = iterator.next().iterator();
+                while (listIterator.hasNext()) {
+                    int[] coord = listIterator.next();
+                    buffer.write(String.valueOf(coord[0]));
+                    buffer.write(String.valueOf(coord[1]));
+                }
+                buffer.write(",");
+                buffer.flush();
+            }
+            
+            buffer.close();
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(this, "Uncaught IO error", "Error",
+                    JOptionPane.ERROR_MESSAGE);        
+        }
     }    
     
     public void load() {
-        //TODO implement load
+        String file = JOptionPane.showInputDialog("Enter the file name you want to read from");
+        try {
+            FileReader fs = new FileReader(file);
+            BufferedReader buffer = new BufferedReader(fs);
+            boolean currentPlayer = Boolean.parseBoolean(buffer.readLine());
+            boolean gameOver = Boolean.parseBoolean(buffer.readLine());
+            
+            int[][] board = new int[9][9];
+            String boardString = buffer.readLine();
+            String[] boardRow = boardString.split(",");
+            for (int i = 0; i < 9; i++) {
+                for (int j = 0; j < 9; j++) {
+                    board[i][j] = Integer.valueOf(Integer.valueOf(
+                            Character.toString(boardRow[i].charAt(j)
+                            )));
+                }
+            }
+            
+            Deque<List<int[]>> history = new LinkedList<List<int[]>>();
+            String historyString = buffer.readLine();
+            String[] historyRow = historyString.split(",");
+            for (int i = 0; i < historyRow.length; i++) {
+                List<int[]> rowList = new LinkedList<int[]>();
+                for (int j = 0; j < historyRow[i].length(); j++) {
+                    int x = Integer.valueOf(
+                            Character.toString(historyRow[i].charAt(j)
+                            ));
+                    j++;
+                    int y = Integer.valueOf(
+                            Character.toString(historyRow[i].charAt(j)
+                            ));
+                    int[] coord = {x, y};
+                    rowList.add(coord);
+                }
+                history.add(rowList);
+            }            
+            buffer.close();
+            model = new Othello(currentPlayer, gameOver, board, history);
+            updateStatus();
+            repaint();
+
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(this, "Uncaught IO error", "Error",
+                    JOptionPane.ERROR_MESSAGE);        
+        }
+    }
+    
+    public void hint() {
+        model.hint();
+        repaint();
+        updateStatus();
     }
     
     /**

@@ -57,22 +57,27 @@ public class Game implements Runnable {
             board.reset();   
         });
         final JButton undo = new JButton("Undo");
-        reset.addActionListener(e -> {
+        undo.addActionListener(e -> {
             board.undo();
         });
         final JButton load = new JButton("Load game");
-        reset.addActionListener(e -> {
-            board.save();
+        load.addActionListener(e -> {
+            board.load();
         });
         final JButton save = new JButton("Save Game");
-        reset.addActionListener(e -> {
-            board.load();
+        save.addActionListener(e -> {
+            board.save();
+        });
+        final JButton hint = new JButton("Hint");
+        hint.addActionListener(e -> {
+            board.hint();
         });
         control_panel.add(reset);
         control_panel.add(undo);
         control_panel.add(save);
         control_panel.add(load);
-
+        control_panel.add(hint);
+        
         // Put the frame on the screen
         frame.pack();
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
