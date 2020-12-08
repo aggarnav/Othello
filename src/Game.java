@@ -72,11 +72,28 @@ public class Game implements Runnable {
         hint.addActionListener(e -> {
             board.hint();
         });
+        final JButton info = new JButton("Info");
+        info.addActionListener(e -> {
+            JOptionPane.showMessageDialog(frame, "Each player has either black or white pieces"
+                    + " where playing\n a new piece flips all pieces in all directions from the "
+                    + "placed piece that are now between two\n pieces of the player's color. "
+                    + "Each turn must flip at least one"
+                    + " piece. If \nan invalid cell is chosen where no pieces are flipped then "
+                    + "the game won't transition\nand it'll remain your turn. If, however, "
+                    + "there is no other options where you can flip a piece "
+                    + "\n then you forfeit your turn and the"
+                    + " other player plays. The player with the\n maximum pieces at the end wins."
+                    + " You can also load/save a game and ask the other\n player to undo their "
+                    + "move. You can also use hint to let the\n computer decide your move"
+                    + ".\nFor more please see "
+                    + "https://www.mastersofgames.com/rules/reversi-othello-rules.htm");
+        });
         control_panel.add(reset);
         control_panel.add(undo);
         control_panel.add(save);
         control_panel.add(load);
         control_panel.add(hint);
+        control_panel.add(info);
         
         // Put the frame on the screen
         frame.pack();

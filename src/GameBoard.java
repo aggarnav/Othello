@@ -107,6 +107,9 @@ public class GameBoard extends JPanel {
 
     }
     
+    /**
+     * Saves the game state
+     */
     public void save() {
         String file = JOptionPane.showInputDialog("Enter the file name you want to store to");
         try {
@@ -146,6 +149,9 @@ public class GameBoard extends JPanel {
         }
     }    
     
+    /**
+     * Loads the game state from a file
+     */
     public void load() {
         String file = JOptionPane.showInputDialog("Enter the file name you want to read from");
         try {
@@ -154,11 +160,11 @@ public class GameBoard extends JPanel {
             boolean currentPlayer = Boolean.parseBoolean(buffer.readLine());
             boolean gameOver = Boolean.parseBoolean(buffer.readLine());
             
-            int[][] board = new int[9][9];
+            int[][] board = new int[8][8];
             String boardString = buffer.readLine();
             String[] boardRow = boardString.split(",");
-            for (int i = 0; i < 9; i++) {
-                for (int j = 0; j < 9; j++) {
+            for (int i = 0; i < 8; i++) {
+                for (int j = 0; j < 8; j++) {
                     board[i][j] = Integer.valueOf(Integer.valueOf(
                             Character.toString(boardRow[i].charAt(j)
                             )));
@@ -194,6 +200,10 @@ public class GameBoard extends JPanel {
         }
     }
     
+    /**
+     * Uses no. of flips as a success metric. When performed, plays the move
+     *  that maximizes the success metric over three moves 
+     */
     public void hint() {
         model.hint();
         repaint();
@@ -247,13 +257,13 @@ public class GameBoard extends JPanel {
         }
         
         // Draws X's and O's
-        for (int i = 0; i < 9; i++) {
-            for (int j = 0; j < 9; j++) {
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
                 int state = model.getCell(j, i);
                 if (state != 0) {
                     if (state == 1) {
                         g.setColor(Color.BLACK);
-                    } else {
+                    } else if (state == 2) {
                         g.setColor(Color.WHITE);                        
                     }
                     g.fillOval(SPACE + SCALE * j, 

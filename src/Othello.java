@@ -60,6 +60,9 @@ public class Othello {
         reset();
     }
     
+    /**
+     * Constructor sets up game state given the field variables
+     */
     public Othello(boolean player1, boolean gameOver, int[][] board, 
             Deque<List<int[]>> history) {
         this.player1 = player1;
@@ -79,10 +82,10 @@ public class Othello {
      * 
      * @param c column to play in
      * @param r row to play in
-     * @return whether the turn was successful
+     * @return the number of pieces flipped
      */
     public Integer playTurn(int c, int r) {
-        if (board[r][c] != 0 || gameOver) {
+        if (getCell(c, r) != 0 || gameOver) {
             return 0;
         }
         
@@ -93,68 +96,83 @@ public class Othello {
         }
         
         Collection<int[]> flipped = flippedPieces(c, r);  
-        flipper(flipped);
         int size = flipped.size();
+        //create integer array to add to history
+        int[] coords = {c, r};
+
         /*if no piece was flipped then remove the piece placed and check if player has 
         any available options, if not then ask player to play again*/
         if (size == 0) {
             board[r][c] = 0;
+            //since we don't play anything, we set x to be 9 to catch it later
+            coords[0] = 9;
+            //loop is terminated early if another option was available
             if (isAvailable().size() > 0) {
                 return size;
             }
         }
-        
+        flipper(flipped);
+
         //add move to history for undo 
-        int[] coords = {c, r};
         List<int[]> move = new LinkedList<int[]>();
         move.add(coords);
         move.addAll(flipped);
         history.add(move);
 
-        if (checkWinner() == 0) {
-            changePlayer();
-        }
+        changePlayer();
         return size;
     }
     
+    /**
+     * Change player
+     */
     private void changePlayer() {
         player1 = !player1;
     }
     
+    /**
+     * Flip a collection of pieces
+     */
     private void flipper(Collection<int[]> pieces) {
         for (int[] coords : pieces) {
             int x = coords[0];
             int y = coords[1];
-            if (getCell(x, y) == 1) {
+            int cell = getCell(x, y);
+            if (cell == 1) {
                 board[y][x] = 2;
-            } else {
+            } else if (cell == 2) {
                 board[y][x] = 1;
             }
         }
         
     }
     
-    //implements undo
+    /**
+     * undo the last move
+     */
     public void undo() {
+        //get the last move from the end of the queue (LIFO)
         List<int[]> lastMove = history.pollLast();
         if (lastMove != null) {
             //get piece played
             int[] coords = lastMove.remove(0);
-            board[coords[1]][coords[0]] = 0;
-            
-            //flip all other pieces moved by that piece
-            flipper(lastMove);
+            //check that the last player had a valid move
+            if (coords[0] != 9) {
+                board[coords[1]][coords[0]] = 0;
+                //flip all other pieces moved by that piece
+                flipper(lastMove);
+            }
             changePlayer();
-            
         }
     }
     
-    //check if player has available options to play
+    /**
+     * Returns the collection of available points to play at
+     */
     private Collection<int[]> isAvailable() {
         Collection<int[]> availableCells = new HashSet<int[]>();
         for (int x = 0; x < 8; x++) {
             for (int y = 0; y < 8; y++) {
-                System.out.print("(" + getCell(x, y) + ", " + flippedPieces(x, y).size() +")");
                 if (getCell(x, y) == 0 && flippedPieces(x, y).size() != 0) {
                     int[] coord = {x, y};
                     availableCells.add(coord);
@@ -164,7 +182,9 @@ public class Othello {
         return availableCells;
     }
     
-    //helper that traverses a given direction
+    /**
+     * helper that traverses given directions from a point
+     */
     private Collection<int[]> flippedPiecesHelper(int c, int r, int x, int y) {
         int currentRow = r + y;
         int currentPiece;
@@ -180,8 +200,8 @@ public class Othello {
         
         Collection<int[]> intermediaryPieces = new HashSet<int[]>();
         
-        while ((!endOfSeries) && currentColumn < 9 && currentColumn >= 0 &&
-                currentRow < 9 && currentRow >= 0) {
+        while ((!endOfSeries) && currentColumn < 8 && currentColumn >= 0 &&
+                currentRow < 8 && currentRow >= 0) {
             int newPiece = getCell(currentColumn, currentRow);
             
             if (newPiece == 0) {
@@ -202,7 +222,9 @@ public class Othello {
         return intermediaryPieces;
     }
     
-    //set of pieces to flip
+    /**
+     * Given coordinates of a point returns the collection of pieces to flip
+     */
     private Collection<int[]> flippedPieces(int c, int r) {
         Collection<int[]> pieces = new HashSet<int[]>();
         pieces.addAll(flippedPiecesHelper(c, r, 0, 1));
@@ -216,41 +238,82 @@ public class Othello {
         return pieces;
     }
     
-    //find the one round maximum gain move
+    /**
+     * find the maximum number of pieces that can be flipped in any one move
+     */
     private int[] findMaxDelta() {
         int delta = 0;
         int[] max = new int[2];
+        Collection<int[]> available = isAvailable();
+        //if no spot is available then choose a random spot to play
+        if (available.size() == 0) {
+            max = anyOpenPlace();
+        }
         for (int[] coord : isAvailable()) {
             int x = coord[0];
             int y = coord[1];            
-            delta += playTurn(x, y);
-            if (delta > max[0]) {
+            int flipped = playTurn(x, y);
+            //if more than current max value, then update max values and coordinates
+            if (flipped > delta) {
                 max = coord;
+                delta = flipped;
             }
             undo();
         }
         return max;
     }
     
+    /**
+     * Gets any open place to play. Implemented for MaxDelta. To be used with playturn
+     */
+    private int[] anyOpenPlace() {
+        int[] coord = {9,0};
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
+                if (getCell(i, j) == 0) {
+                    coord[0] = i;
+                    coord[1] = j;
+                    return coord;
+                }
+            }
+        }
+        //if there are no available spaces then add move to history and change player
+        List<int[]> move = new LinkedList<int[]>();
+        move.add(coord);
+        history.add(move);
+        changePlayer();
+        return coord;
+    }
+    
+    /**
+     * Plays the move with the highest number of net flips over three moves
+     */
     public void hint() {
         int[] move = new int[2];
-        int maxDelta = -1;
-        System.out.print(isAvailable().size());
+        //set as -65 in case all options net to flipping all pieces for the other player
+        int maxDelta = -65;
         
-        //try all combinations and find maximum gain in flips over two rounds
+        //try all combinations and find maximum gain in flips over three moves/two rounds
+        Collection<int[]> available = isAvailable();
+        //if no spot is available then choose a random spot to play
+        if (available.size() == 0) {
+            move = anyOpenPlace();
+        }
         for (int[] coord : isAvailable()) {
             int x = coord[0];
             int y = coord[1];            
             int delta = playTurn(x, y);
             int[] secondMove = findMaxDelta();
+            //the next player plays so we subtract this value
             delta -= playTurn(secondMove[0], secondMove[1]);
+            //the current player plays so we add this value
             int[] thirdMove = findMaxDelta();
             delta += playTurn(thirdMove[0], thirdMove[1]);
             if (delta > maxDelta) {
                 maxDelta = delta;
                 move = coord;
             }
-            //undo changes to the board
+            //undo changes to the board three times since we played three times
             for (int i = 0; i < 3; i++) {
                 undo();
             }
@@ -264,13 +327,13 @@ public class Othello {
      * condition. checkWinner only looks for horizontal wins.
      * 
      * @return 0 if nobody has won yet, 1 if player 1 has won, and
-     *            2 if player 2 has won, 3 if the game hits stalemate
+     *            2 if player 2 has won, 3 if the game is tied
      */
     public int checkWinner() {
         int whiteCount = 0;
         int blackCount = 0;
-        for (int i = 0; i < 9; i++) {
-            for (int j = 0; j < 9; j++) {
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
                 int cell = getCell(i, j);
                 if (cell == 0) {
                     return 0;
@@ -295,7 +358,7 @@ public class Othello {
      * reset (re-)sets the game state to start a new game.
      */
     public void reset() {
-        board = new int[9][9];
+        board = new int[8][8];
         board[3][3] = 2;
         board[4][4] = 2;
         board[3][4] = 1;
@@ -324,11 +387,14 @@ public class Othello {
      * @param r row to retrieve
      * @return an integer denoting the contents
      *         of the corresponding cell on the 
-     *         game board.  0 = empty, 1 = Player 1,
-     *         2 = Player 2
+     *         game board.  0 = empty, 1 = Black,
+     *         2 = White; -1 = index outofbounds
      */
     public int getCell(int c, int r) {
-        return board[r][c];
+        if (c < 8 && -1 < c && r < 8 && -1 < r) {
+            return board[r][c];            
+        }
+        return -1;
     }
     
 }
