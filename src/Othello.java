@@ -323,35 +323,26 @@ public class Othello {
     }
 
     /**
-     * checkWinner checks whether the game has reached a win 
-     * condition. checkWinner only looks for horizontal wins.
+     * counts score for white and black
      * 
-     * @return 0 if nobody has won yet, 1 if player 1 has won, and
-     *            2 if player 2 has won, 3 if the game is tied
+     * @return integer array where the first element is the number of black pieces
+     *  and the second element is the number of black pieces
      */
-    public int checkWinner() {
+    public int[] checkWinner() {
         int whiteCount = 0;
         int blackCount = 0;
         for (int i = 0; i < 8; i++) {
             for (int j = 0; j < 8; j++) {
                 int cell = getCell(i, j);
-                if (cell == 0) {
-                    return 0;
-                } else if (cell == 1) {
+                if (cell == 1) {
                     blackCount ++;
-                } else {
+                } else if (cell == 2) {
                     whiteCount ++;
                 }
             }
         }
-        if (blackCount > whiteCount) {
-            return 1;
-        } else if (whiteCount > blackCount) {
-            return 2;
-        } else {
-            return 3;
-        }
-    
+        int[] result = {blackCount, whiteCount};
+        return result;    
     }
     
     /**

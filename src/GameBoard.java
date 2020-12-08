@@ -214,22 +214,32 @@ public class GameBoard extends JPanel {
      * Updates the JLabel to reflect the current state of the game.
      */
     private void updateStatus() {
+        String state;
         if (model.getCurrentPlayer()) {
-            status.setText("Black plays");
+            state = "Black plays";
         } else {
-            status.setText("White plays");
+            state = "White plays";
         }
         
-        int winner = model.checkWinner();
-        if (winner == 1) {
-            JOptionPane.showMessageDialog(this, "Black wins!!!", "Game Over", 
+        int[] result = model.checkWinner();
+        int blackCount = result[0];
+        int whiteCount = result[1];
+        state += "; Black pieces: " + String.valueOf(blackCount);
+        state += "; White pieces: " + String.valueOf(whiteCount);
+        status.setText(state);
+       
+        
+        if (whiteCount + blackCount == 64) {
+            if (blackCount > whiteCount) {
+                JOptionPane.showMessageDialog(this, "Black wins!!!", "Game Over", 
+                        JOptionPane.INFORMATION_MESSAGE);
+            } else if (whiteCount > blackCount) {
+                JOptionPane.showMessageDialog(this, "White wins!!!", "Game Over", 
+                        JOptionPane.INFORMATION_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(this, "It's a tie", "Game Over", 
                     JOptionPane.INFORMATION_MESSAGE);
-        } else if (winner == 2) {
-            JOptionPane.showMessageDialog(this, "White wins!!!", "Game Over", 
-                    JOptionPane.INFORMATION_MESSAGE);        
-        } else if (winner == 3) {
-            JOptionPane.showMessageDialog(this, "It's a tie", "Game Over", 
-                    JOptionPane.INFORMATION_MESSAGE);
+            }
         }
     }
 
