@@ -250,7 +250,7 @@ public class GameBoard extends JPanel {
         g.setColor(Color.WHITE);
         
         // Draws board grid
-        for (int i = 1; i < 10; i++) {
+        for (int i = 1; i < 9; i++) {
             int index = i * SCALE;
             g.drawLine(index, 0, index, BOARD_HEIGHT);
             g.drawLine(0, index, BOARD_WIDTH, index);
