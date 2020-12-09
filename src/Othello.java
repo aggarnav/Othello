@@ -49,7 +49,11 @@ public class Othello {
      */
     public Deque<List<int[]>> getHistory() {
         Deque<List<int[]>> toReturn = new LinkedList<List<int[]>>();
-        toReturn.addAll(history);
+        for (List<int[]> list : history) {
+            List<int[]> toReturnList = new LinkedList<int[]>();
+            toReturnList.addAll(list);
+            toReturn.add(toReturnList);
+        }
         return toReturn;
     }
 
